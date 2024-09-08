@@ -76,3 +76,15 @@ export async function askForAdditionalInput(): Promise<string> {
   ]);
   return answers.aiInput;
 }
+
+export async function askForOrganization(): Promise<string> {
+  const answers = await inquirer.prompt([
+    {
+      type: "input",
+      name: "organization",
+      message:
+        "Add an organization to narrow down the repo search (optional, but will be saved for future runs) \n",
+    },
+  ]);
+  return answers.organization;
+}

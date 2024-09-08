@@ -1,10 +1,15 @@
 import fs from "node:fs";
 import dotenv from "dotenv";
-import { askForGithubToken, askForOpenAIToken } from "./cli.js";
+import {
+  askForGithubToken,
+  askForOpenAIToken,
+  askForOrganization,
+} from "./cli.js";
 
 const envFilePath = ".env";
 
 function saveSecretToEnv(varName: string, value: string) {
+  if (!value) return;
   let envContent = "";
   if (fs.existsSync(envFilePath)) {
     envContent = fs.readFileSync(envFilePath, "utf-8");
@@ -31,5 +36,9 @@ export async function checkForSecrets(): Promise<void> {
   if (!process.env.OPENAI_API_KEY) {
     const openAiToken = await askForOpenAIToken();
     saveSecretToEnv("OPENAI_API_KEY", openAiToken);
+  }
+  if (!process.env.GITHUB_ORG) {
+    const organization = await askForOrganization();
+    saveSecretToEnv("GITHUB_ORG", organization);
   }
 }

@@ -1,8 +1,6 @@
 import type { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 import { client } from "../connections/github.js";
 
-const ORGANIZATION = "thirdweb-dev";
-
 export type Repository = GetResponseTypeFromEndpointMethod<
   typeof client.rest.search.repos
 >["data"]["items"][0];
@@ -10,8 +8,11 @@ export type Repository = GetResponseTypeFromEndpointMethod<
 export async function searchRepositories(
   searchString: string,
 ): Promise<Repository[]> {
-  const res = await client.rest.search.repos({
-    q: `${searchString} org:${ORGANIZATION}`,
-  });
+  const org = process.env.GITHUB_ORG;
+  let q = searchString;
+  if (org) {
+    q = `${q} org:${org}`;
+  }
+  const res = await client.rest.search.repos({ q });
   return res.data.items;
 }
