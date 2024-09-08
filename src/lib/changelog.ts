@@ -1,6 +1,10 @@
 import fs from "node:fs";
 import { client as aiClient } from "../connections/openai.js";
-import { askForPrSelection, askForRepoSelection } from "./cli.js";
+import {
+  askForAdditionalInput,
+  askForPrSelection,
+  askForRepoSelection,
+} from "./cli.js";
 import {
   type PRDetails,
   fetchMergedPRs,
@@ -10,9 +14,15 @@ import { searchRepositories } from "./repositories.js";
 
 const OUTPUT_FILE_PATH = "CHANGELOG.md";
 
-function getAIPrompt(prDetails: PRDetails[]): string {
+function getAIPrompt(
+  prDetails: PRDetails[],
+  additionalContext?: string,
+): string {
   let prompt =
     "Generate a changelog entry the following pull requests in markdown. Do not repeat yourself and summarize based on context. Ignore boilerplate.";
+  if (additionalContext) {
+    prompt = `${prompt} ${additionalContext}`;
+  }
   for (const prDetail of prDetails) {
     prompt = `
 ${prompt}
@@ -26,8 +36,11 @@ Commits: ${prDetail.commitMessages.join(", ")}
   return prompt;
 }
 
-async function generateAIChangelog(prs: PRDetails[]): Promise<string> {
-  const prompt = getAIPrompt(prs);
+async function generateAIChangelog(
+  prs: PRDetails[],
+  additionalContext?: string,
+): Promise<string> {
+  const prompt = getAIPrompt(prs, additionalContext);
   // console.log(`Generating changelog entry for pr #${pr.number} ${pr.title}`);
   const responseStream = await aiClient.chat.completions.create({
     model: "gpt-4o",
@@ -60,6 +73,7 @@ export async function generateChangelog(
   const prDetails = await Promise.all(
     chosenPrs.map((pr) => fetchPRDetails(pr)),
   );
-  const changelog = await generateAIChangelog(prDetails);
+  const additionalContext = await askForAdditionalInput();
+  const changelog = await generateAIChangelog(prDetails, additionalContext);
   saveChangeLog(changelog, OUTPUT_FILE_PATH);
 }

@@ -58,9 +58,21 @@ export async function askForOpenAIToken(): Promise<string> {
       type: "password",
       name: "openAIToken",
       message:
-        "Provide the OpenAI api key to use. You can get it from https://platform.openai.com/api-keys.",
+        "Provide the OpenAI api key to use. You can get it from https://platform.openai.com/api-keys. \n",
       mask: true,
     },
   ]);
   return answers.openAIToken;
+}
+
+export async function askForAdditionalInput(): Promise<string> {
+  const answers = await inquirer.prompt([
+    {
+      type: "input",
+      name: "aiInput",
+      message:
+        "Do you want to add any additional context for the AI? Do it here \n",
+    },
+  ]);
+  return answers.aiInput;
 }
